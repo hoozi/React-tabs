@@ -1,0 +1,17 @@
+{
+  "name": "React-tabs",
+  "homepage": "https://github.com/hoozi/React-tabs",
+  "authors": [
+    "AngryPanda <287036406@qq.com>"
+  ],
+  "description": "",
+  "main": "",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
