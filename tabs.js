@@ -33,15 +33,15 @@ class Tabs extends Component {
     _handler(activeIndex) {
         const preIndex = this.state.activeIndex;
         if(this.state.activeIndex!==activeIndex &&
-            'defaulteActiveIndex' in this.props
+            'defaultActiveIndex' in this.props
         ) {
-            this.setState(
+            this.setState({
                 activeIndex,
                 preIndex
-            )
+            })
+            this.props.onChange({activeIndex, preIndex});
         }
-
-        this.props.onChange({activeIndex, preIndex});
+        
     }
 
     getTabNav() {
@@ -66,12 +66,12 @@ class Tabs extends Component {
                 panels = {children}
                 activeIndex = {this.state.activeIndex}
             />
-        )
+        );
     }
 
     render() {
        const {className} = this.props;
-       let classnames = classsNames(className, 'ui-tab')
+       let classnames = classNames(className, 'ui-tab')
        return (
            <div className={classnames}>
                 {this.getTabNav()}
@@ -87,52 +87,46 @@ Tabs.defaultProps = {
 }
 
 class TabNav extends Component {
-    constructor(props) {
-        super(props);
-    }
     getTabs() {
         const {classPrefix, panels, activeIndex} = this.props;
-        
-        React.Children.map(panels, (child) => {
-            if(!child) return;
+        return React.Children.map(panels, (child) => {
+                if(!child) return;
 
-            const order = parseInt(child.props.order, 10);
+                const order = parseInt(child.props.order, 10);
 
-            let classnames = classNames({
-                [`${classPrefix}-tab`]: true, 
-                [`${classPrefix}-active`]: activeIndex === order, 
-                [`${classPrefix}-disabled`]: child.props.disabled,
-            });
-
-            let events = {};
-            if(!child.props.disabled) {
-                events = {
-                    onClick: this.props.onTabClick.bind(this, order)
+                let classnames = classNames({
+                    [`${classPrefix}-tab`]: true, 
+                    [`${classPrefix}-active`]: activeIndex === order, 
+                    [`${classPrefix}-disabled`]: child.props.disabled,
+                });
+                let events = {};
+                if(!child.props.disabled) {
+                    events = {
+                        onClick: this.props.onTabClick.bind(this, order)
+                    }
                 }
-            }
-            let ref = {};
-            if(activeIndex===order) {
-                ref.ref = 'activeTab';
-            }
-            return (
-                <li 
-                    role = 'tab'
-                    aria-disabled={child.props.disabled ? 'true' : 'false'} 
-                    aria-selected={activeIndex === order? 'true' : 'false'}
-                    {...events}
-                    className={classnames}
-                    key={order}
-                    {...ref}
-                >
-                    {child.props.tab}
-                </li>
-            )
+                let ref = {};
+                if(activeIndex===order) {
+                    ref.ref = 'activeTab';
+                }
+                return (
+                    <li 
+                        role = 'tab'
+                        aria-disabled={child.props.disabled ? 'true' : 'false'} 
+                        aria-selected={activeIndex === order? 'true' : 'false'}
+                        {...events}
+                        className={classnames}
+                        key={order}
+                        {...ref}
+                    >
+                        {child.props.tab}
+                    </li>
+                )
         })
     }
 
     render() {
         const {classPrefix} = this.props;
-        
         const classRoot = classNames({
             [`${classPrefix}-bar`]: true
         });
@@ -140,9 +134,9 @@ class TabNav extends Component {
         const classnames = classNames({
             [`${classPrefix}-nav`]: true
         });
-
+        
         return (
-            <div className={classRoot}>
+            <div className={classRoot} role='tab-list'>
                 <ul className={classnames}>
                     {this.getTabs()}
                 </ul>
@@ -155,23 +149,58 @@ class TabContent extends Component {
     getPanels() {
         const {classPrefix, panels, activeIndex} = this.props;
 
-        React.Children.map(panels, (child) => {
-            
-            return React.cloneElement(child, {
+        return React.Children.map(panels, (child) => {
+            if(!child) return;
 
+            const order = parseInt(child.props.order, 10);
+            const isActive = order === activeIndex;
+            return React.cloneElement(child, {
+                classPrefix,
+                isActive,
+                children: child.props.children,
+                key: `tab-panel-${order}`
             })
         })
     }
     render() {
-
+        const {classPrefix} = this.props;
+        let classnames = classNames({
+            [`${classPrefix}-content`]: true
+        });
+        
+        return (
+            <div className={classnames}>
+                {this.getPanels()}
+            </div>
+        )
     }
 }
 
+class TabPane extends Component {
+
+    render() {
+        const {classPrefix, className, isActive, children} = this.props;
+        let classnames = classNames({
+            [className]: true,
+            [`${classPrefix}-panel`]: true,
+            [`${classPrefix}-active`]: isActive
+        })
+        return (
+            <div role='panel' className={classnames} aria-hidden={!isActive}>
+                {children}
+            </div>
+        )
+    }
+}
+function change(index) {
+    console.log(index);
+}
 const tabs = (
-<Tabs classPrefix={'tabs'} defaultActiveIndex={0}>
-    <TabPane key={0} tab={'Tab 1'}>第一个 Tab 里的内容</TabPane>
-    <TabPane key={1} tab={'Tab 2'}>第二个 Tab 里的内容</TabPane>
-    <TabPane key={2} tab={'Tab 3'}>第三个 Tab 里的内容</TabPane>
+<Tabs classPrefix={'tabs'} className={'tabs'} defaultActiveIndex={0} onChange={change}>
+    <TabPane key={0} order={0} tab={'Tab 1'}>第一个 Tab 里的内容</TabPane>
+    <TabPane key={1} order={1} tab={'Tab 2'}>第二个 Tab 里的内容</TabPane>
+    <TabPane key={2} order={2} tab={'Tab 3'}>第三个 Tab 里的内容</TabPane>
 </Tabs>
 )
 
+ReactDOM.render(tabs, app);
